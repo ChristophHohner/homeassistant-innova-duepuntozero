@@ -1,0 +1,40 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Innova Duepuntozero",
+        "description": "Enter your Innova account credentials.\n\n**Note:** Only email/password login is supported. Sign-in via Google or other OAuth providers is not yet implemented.",
+        "data": {
+          "innova_email": "Email address",
+          "innova_password": "Password",
+          "innova_mac_address": "Device MAC address"
+        },
+        "data_description": {
+          "innova_email": "The email address you use to sign in to the Innova app.",
+          "innova_password": "Your Innova account password.",
+          "innova_mac_address": "The MAC address of your air conditioning unit, e.g. AA:BB:CC:DD:EE:FF. You can find it in the Innova app under device settings."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect – please check your email address and password.",
+      "unknown": "An unexpected error occurred. Check the Home Assistant logs for details."
+    },
+    "abort": {
+      "already_configured": "This device is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Innova Duepuntozero options",
+        "data": {
+          "poll_interval": "Fallback polling interval (minutes)"
+        },
+        "data_description": {
+          "poll_interval": "How often to poll the device as a fallback when the event stream is active. Set to 0 to disable polling entirely (not recommended)."
+        }
+      }
+    }
+  }
+}

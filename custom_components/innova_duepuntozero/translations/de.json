@@ -1,0 +1,40 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Innova Duepuntozero einrichten",
+        "description": "Gib die Zugangsdaten deines Innova-Kontos ein.\n\n**Hinweis:** Es wird ausschließlich die Anmeldung per E-Mail und Passwort unterstützt. Eine Anmeldung über Google oder andere OAuth-Anbieter ist noch nicht implementiert.",
+        "data": {
+          "innova_email": "E-Mail-Adresse",
+          "innova_password": "Passwort",
+          "innova_mac_address": "MAC-Adresse des Geräts"
+        },
+        "data_description": {
+          "innova_email": "Die E-Mail-Adresse, mit der du dich in der Innova-App anmeldest.",
+          "innova_password": "Dein Passwort für das Innova-Konto.",
+          "innova_mac_address": "Die MAC-Adresse der Klimaanlage, z. B. AA:BB:CC:DD:EE:FF. Du findest sie in der Innova-App unter den Geräteeinstellungen."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung fehlgeschlagen – bitte E-Mail-Adresse und Passwort prüfen.",
+      "unknown": "Unbekannter Fehler. Weitere Details in den Home-Assistant-Logs."
+    },
+    "abort": {
+      "already_configured": "Dieses Gerät ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Innova Duepuntozero – Einstellungen",
+        "data": {
+          "poll_interval": "Fallback-Abfrageintervall (Minuten)"
+        },
+        "data_description": {
+          "poll_interval": "Wie oft der Gerätestatus als Fallback abgefragt wird, wenn der Echtzeit-Eventstream aktiv ist. Auf 0 setzen, um die Abfrage vollständig zu deaktivieren (nicht empfohlen)."
+        }
+      }
+    }
+  }
+}
