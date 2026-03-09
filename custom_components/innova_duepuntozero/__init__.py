@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import logging
 import threading
 from datetime import timedelta
@@ -13,7 +14,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .api import DeviceStatus, InnovaApiError, InnovaClient
 from .const import (
-    CONF_MAC_ADDRESS,
     CONF_POLL_INTERVAL,
     DEFAULT_POLL_INTERVAL,
     DOMAIN,
@@ -50,6 +50,13 @@ class InnovaCoordinator(DataUpdateCoordinator[DeviceStatus]):
         self.client = client
         self._stop_event = threading.Event()
         self._stream_task: asyncio.Task | None = None
+        # Dedicated single-thread executor so the blocking socket call does
+        # not occupy a slot in HA's shared thread pool and is not awaited
+        # by HA during bootstrap or shutdown.
+        self._executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=1,
+            thread_name_prefix="innova_duepuntozero_stream",
+        )
 
     async def _async_update_data(self) -> DeviceStatus:
         """Ensure login and fetch full device status."""
@@ -77,23 +84,27 @@ class InnovaCoordinator(DataUpdateCoordinator[DeviceStatus]):
             )
 
     def start_streaming(self) -> None:
-        """Schedule the background event stream as a fire-and-forget task.
+        """Schedule the background event stream.
 
-        Must be called from the event loop thread. Does not block.
+        Uses loop.create_task() instead of hass.async_create_task() so that
+        HA's bootstrap tracker does not wait for this long-running task during
+        startup or shutdown.
         """
         self._stop_event.clear()
-        self._stream_task = self.hass.async_create_task(
+        self._stream_task = self.hass.loop.create_task(
             self._async_stream_loop(),
             name=f"innova_duepuntozero_stream_{id(self)}",
         )
 
     async def _async_stream_loop(self) -> None:
         """Run the event stream, reconnecting automatically on errors."""
+        loop = asyncio.get_event_loop()
         while not self._stop_event.is_set():
             try:
                 await self.client.async_ensure_logged_in()
                 _LOGGER.debug("Starting SubscribeToDeviceEvents stream")
-                await self.hass.async_add_executor_job(
+                await loop.run_in_executor(
+                    self._executor,
                     self.client._stream_device_events,
                     self._on_event,
                     self._stop_event,
@@ -113,7 +124,7 @@ class InnovaCoordinator(DataUpdateCoordinator[DeviceStatus]):
                 await asyncio.sleep(5)
 
     async def async_stop_streaming(self) -> None:
-        """Stop the background event stream and wait for it to finish."""
+        """Stop the background event stream and shut down the executor."""
         self._stop_event.set()
         if self._stream_task is not None:
             self._stream_task.cancel()
@@ -122,6 +133,7 @@ class InnovaCoordinator(DataUpdateCoordinator[DeviceStatus]):
             except (asyncio.CancelledError, Exception):
                 pass
             self._stream_task = None
+        self._executor.shutdown(wait=False)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
