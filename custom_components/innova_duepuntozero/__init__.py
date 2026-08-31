@@ -29,9 +29,9 @@ PLATFORMS = [Platform.CLIMATE]
 class InnovaCoordinator(DataUpdateCoordinator[DeviceStatus]):
     """Coordinator for Innova Duepuntozero.
 
-    Fetches the full device status on startup and after errors, and keeps
-    it up to date in real time via SubscribeToDeviceEvents.  Periodic
-    polling is kept as a fallback in case the event stream drops.
+    The v2 API has no "get status" call: state arrives only through the
+    SubscribeEvents stream, which pushes a full DeviceStatus on every change.
+    Periodic polling is kept as a fallback in case the stream drops.
     """
 
     def __init__(self, hass: HomeAssistant, client: InnovaClient, entry: ConfigEntry) -> None:
@@ -59,7 +59,7 @@ class InnovaCoordinator(DataUpdateCoordinator[DeviceStatus]):
         )
 
     async def _async_update_data(self) -> DeviceStatus:
-        """Ensure login and fetch full device status."""
+        """Ensure login and return the latest known device status."""
         try:
             await self.client.async_ensure_logged_in()
             status = await self.client.async_get_device_status()
@@ -69,19 +69,9 @@ class InnovaCoordinator(DataUpdateCoordinator[DeviceStatus]):
             raise UpdateFailed("Device status could not be parsed")
         return status
 
-    def _on_event(self, event_type: int, event_value: bytes) -> None:
-        """Called from the streaming thread when an event arrives."""
-        if self.data is None:
-            return
-        updated = self.data.apply_event(event_type, event_value)
-        if updated:
-            _LOGGER.debug("Event type=%d updated status", event_type)
-            self.hass.loop.call_soon_threadsafe(self.async_set_updated_data, self.data)
-        else:
-            _LOGGER.debug("Received unknown event type=%d, triggering full poll", event_type)
-            self.hass.loop.call_soon_threadsafe(
-                lambda: self.hass.async_create_task(self.async_request_refresh())
-            )
+    def _on_event(self, status: DeviceStatus) -> None:
+        """Called from the streaming thread with a full DeviceStatus (v2)."""
+        self.hass.loop.call_soon_threadsafe(self.async_set_updated_data, status)
 
     def start_streaming(self) -> None:
         """Schedule the background event stream.
@@ -126,6 +116,7 @@ class InnovaCoordinator(DataUpdateCoordinator[DeviceStatus]):
     async def async_stop_streaming(self) -> None:
         """Stop the background event stream and shut down the executor."""
         self._stop_event.set()
+        self.client.stop()
         if self._stream_task is not None:
             self._stream_task.cancel()
             try:
