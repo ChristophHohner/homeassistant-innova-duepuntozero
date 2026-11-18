@@ -4,7 +4,8 @@
 
 A Home Assistant custom integration for **Innova Duepuntozero** air conditioning units. It communicates with the Innova cloud API using gRPC and supports real-time state updates via server-sent events.
 
-> **Note:** This integration only supports the Duepuntozero device generation. Older Innova models are not compatible.
+> [!WARNING]
+> This integration is no longer working since Innova changed the API on their servers. Please use [buenaonda/innova-farna-ha](https://github.com/buenaonda/innova-farna-ha) instead.
 
 ## Features
 
@@ -18,14 +19,14 @@ A Home Assistant custom integration for **Innova Duepuntozero** air conditioning
 
 ## Related projects
 
-> **Older Innova models** (pre-Duepuntozero) expose a local REST API and are **not** supported by this integration.  
+> **Older Innova models** expose a local REST API and are **not** supported by this integration.
 > For those devices, use [homeassistant-innova](https://github.com/danielrivard/homeassistant-innova) by @danielrivard instead.
 
 ## Requirements
 
-- A Innova account with email/password login  
+- A Innova account with email/password login
   *(Google / OAuth sign-in is not yet supported)*
-- The MAC address of your Duepuntozero unit  
+- The MAC address of your Duepuntozero unit
   *(visible in the Innova app under device settings)*
 
 ## Installation
@@ -40,7 +41,7 @@ A Home Assistant custom integration for **Innova Duepuntozero** air conditioning
 
 ### Manual
 
-1. Copy the `custom_components/innova_duepuntozero` folder into your  
+1. Copy the `custom_components/innova_duepuntozero` folder into your
    `<config>/custom_components/` directory
 2. Restart Home Assistant
 
@@ -57,7 +58,7 @@ You will be asked for:
 
 ### Options
 
-After setup, you can adjust the fallback polling interval via  
+After setup, you can adjust the fallback polling interval via
 **Settings → Devices & Services → Innova Duepuntozero → Configure**:
 
 | Option | Default | Description |
