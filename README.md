@@ -5,7 +5,7 @@
 A Home Assistant custom integration for **Innova Duepuntozero** air conditioning units. It communicates with the Innova cloud API using gRPC and supports real-time state updates via server-sent events.
 
 > [!WARNING]
-> This integration is no longer working since Innova changed the API on their servers. Please use [buenaonda/innova-farna-ha](https://github.com/buenaonda/innova-farna-ha) instead.
+> This integration is no longer working since Innova changed the API on their servers. Please use [buenaonda/innova-farna-ha](https://github.com/buenaonda/innova-farna-ha) or [achillecalegari/hass-innova-cloud](https://github.com/achillecalegari/hass-innova-cloud) instead.
 
 ## Features
 
